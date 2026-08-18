@@ -22,7 +22,7 @@ const authMiddleware = async (req, res, next) => {
             process.env.JWT_SECRET
         );
 
-        // 4. Get jti from JWT
+        // 4. Extract jti from JWT
         const jti = decoded.jti;
 
         if (!jti) {
@@ -37,7 +37,7 @@ const authMiddleware = async (req, res, next) => {
             `revoked:jti:${jti}`
         );
 
-        // 6. If token has been revoked
+        // 6. If session has been revoked
         if (revoked) {
             return res.status(401).json({
                 error: "Session revoked",
@@ -46,10 +46,10 @@ const authMiddleware = async (req, res, next) => {
             });
         }
 
-        // 7. Attach user information to request
+        // 7. Attach decoded JWT information to request
         req.user = decoded;
 
-        // 8. Continue to protected route
+        // 8. Allow request to continue
         next();
 
     } catch (error) {
