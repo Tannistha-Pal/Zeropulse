@@ -118,6 +118,58 @@ const login = async (req, res) => {
     }
 };
 
+const revokeSession = async (req, res) => {
+    try {
+        // Get jti from the verified JWT
+        const jti = req.user.jti;
+
+        if (!jti) {
+            return res.status(400).json({
+                message: "Session ID (jti) not found in token"
+            });
+        }
+
+        // Calculate remaining JWT lifetime in seconds
+        const currentTime = Math.floor(Date.now() / 1000);
+        const remainingTTL = req.user.exp - currentTime;
+
+        if (remainingTTL <= 0) {
+            return res.status(401).json({
+                message: "Session has already expired"
+            });
+        }
+
+        // Add JWT to Redis revocation list
+        await redisClient.setEx(
+            `revoked:jti:${jti}`,
+            remainingTTL,
+            "revoked"
+        );
+
+        // Mark session as inactive in PostgreSQL
+        await pool.query(
+            `UPDATE sessions
+             SET is_active = FALSE
+             WHERE jwt_jti = $1
+             AND user_id = $2`,
+            [jti, req.user.userId]
+        );
+
+        return res.status(200).json({
+            message: "Session revoked successfully",
+            jti: jti
+        });
+
+    } catch (error) {
+        console.error("Session revocation error:", error);
+
+        return res.status(500).json({
+            message: "Failed to revoke session"
+        });
+    }
+};
+
 module.exports = {
-    login
+    login,
+    revokeSession
 };

@@ -5,7 +5,9 @@ const cors = require("cors");
 
 const pool = require("./config/db");
 const redisClient = require("./config/redis");
+
 const authRoutes = require("./routes/auth.routes");
+const userRoutes = require("./routes/user.routes");
 
 const app = express();
 
@@ -18,7 +20,11 @@ app.use(
     cors({
         origin: "http://localhost:5173",
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization", "x-device-id"]
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "x-device-id"
+        ]
     })
 );
 
@@ -26,7 +32,7 @@ app.use(express.json());
 
 
 // ================================
-// Routes
+// Basic API Route
 // ================================
 
 app.get("/", (req, res) => {
@@ -34,6 +40,11 @@ app.get("/", (req, res) => {
         message: "ZeroPulse API is running"
     });
 });
+
+
+// ================================
+// Database Test Route
+// ================================
 
 app.get("/api/test-db", async (req, res) => {
     try {
@@ -56,8 +67,18 @@ app.get("/api/test-db", async (req, res) => {
 });
 
 
-// Authentication routes
+// ================================
+// Authentication Routes
+// ================================
+
 app.use("/api/auth", authRoutes);
+
+
+// ================================
+// Protected User Routes
+// ================================
+
+app.use("/api/user", userRoutes);
 
 
 // ================================
