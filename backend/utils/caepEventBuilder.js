@@ -1,7 +1,7 @@
 'use strict';
 
 function createCaepEvent(eventType, sessionInfo, details) {
-    return JSON.stringify({
+    const event = {
         specversion: "1.0",
 
         event_type:
@@ -13,13 +13,15 @@ function createCaepEvent(eventType, sessionInfo, details) {
 
         subject: {
             format: "complex",
-            user: sessionInfo.userId || "unknown",
-            session: sessionInfo.sessionId || "unknown",
-            jti: sessionInfo.jti || "unknown"
+            user: sessionInfo.userId,
+            session: sessionInfo.sessionId,
+            jti: sessionInfo.jti
         },
 
         event_data: details
-    });
+    };
+
+    return JSON.stringify(event);
 }
 
 module.exports = {
