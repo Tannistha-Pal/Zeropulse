@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const { createServer } = require("node:http");
 
 const pool = require("./config/db");
 const redisClient = require("./config/redis");
@@ -9,8 +10,12 @@ const redisClient = require("./config/redis");
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
 const { startCaepSubscriber } = require("./services/caepSubscriber");
+const { initializeSocketServer } = require("./services/socketService");
 
 const app = express();
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+const server = createServer(app);
+const io = initializeSocketServer(server, FRONTEND_ORIGIN);
 
 
 // ================================
@@ -19,7 +24,7 @@ const app = express();
 
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: FRONTEND_ORIGIN,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allowedHeaders: [
             "Content-Type",
@@ -100,8 +105,8 @@ async function startServer() {
         await startCaepSubscriber();
         console.log("CAEP subscriber started");
 
-        // Start Express server
-        app.listen(PORT, () => {
+        // Start the HTTP server shared by Express and Socket.IO.
+        server.listen(PORT, () => {
             console.log(
                 `ZeroPulse API running on http://localhost:${PORT}`
             );
@@ -119,5 +124,7 @@ if (require.main === module) {
 
 module.exports = {
     app,
+    io,
+    server,
     startServer
 };

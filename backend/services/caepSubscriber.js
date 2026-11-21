@@ -6,6 +6,7 @@ const redisClient = require('../config/redis');
 const { parseCaepEvent } = require('./caepEventParser');
 const { calculateRiskScore } = require('./riskEngine');
 const { enforceRiskPolicy } = require('./enforcementEngine');
+const { emitThreatEvent } = require('./socketService');
 
 const REDIS_CHANNEL = 'caep:security_events';
 let subscriberPromise = null;
@@ -69,7 +70,8 @@ async function startCaepSubscriber() {
                             '[CAEP Risk Engine] Risk Score:',
                             riskScore
                         );
-                        await enforceRiskPolicy(event, riskScore);
+                        const enforcementResult = await enforceRiskPolicy(event, riskScore);
+                        emitThreatEvent(event, riskScore, enforcementResult);
 
                     } catch (error) {
 

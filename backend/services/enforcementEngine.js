@@ -2,6 +2,7 @@
 
 const pool = require('../config/db');
 const redisClient = require('../config/redis');
+const { emitSessionRevoked } = require('./socketService');
 
 const RISK_THRESHOLD = 70;
 
@@ -72,6 +73,10 @@ async function enforceRiskPolicy(event, riskScore) {
 
         console.log(
             `[Enforcement] Session ${jti} revoked successfully.`
+        );
+        emitSessionRevoked(
+            jti,
+            `High-risk CAEP event (${event.details?.type || 'unknown'}, risk ${riskScore}).`
         );
         return { enforced: true, revoked: true };
 
