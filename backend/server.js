@@ -8,6 +8,7 @@ const redisClient = require("./config/redis");
 
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
+const { startCaepSubscriber } = require("./services/caepSubscriber");
 
 const app = express();
 
@@ -96,6 +97,8 @@ async function startServer() {
         }
 
         console.log("Redis connected");
+        await startCaepSubscriber();
+        console.log("CAEP subscriber started");
 
         // Start Express server
         app.listen(PORT, () => {
@@ -110,4 +113,11 @@ async function startServer() {
     }
 }
 
-startServer();
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = {
+    app,
+    startServer
+};

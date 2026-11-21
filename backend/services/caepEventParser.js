@@ -22,8 +22,14 @@ function parseCaepEvent(rawMessage) {
     }
 
     // 3. Normalize the event
+    const eventType = event.event_type;
+    const eventTypeName = eventType.includes('/')
+        ? eventType.substring(eventType.lastIndexOf('/') + 1)
+        : eventType;
+
     return {
-    type: event.event_type,
+    type: eventTypeName,
+    eventId: event.jti || null,
     source: event.event_data?.source || 'unknown',
     platform: event.event_data?.platform || 'unknown',
     timestamp: event.event_timestamp || null,

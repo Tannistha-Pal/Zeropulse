@@ -18,7 +18,10 @@ function createCaepEvent(eventType, sessionInfo, details) {
             jti: sessionInfo.jti
         },
 
-        event_data: details
+        event_data: {
+            type: eventType,
+            ...(details || {})
+        }
     };
 
     return JSON.stringify(event);

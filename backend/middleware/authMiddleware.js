@@ -33,6 +33,9 @@ const authMiddleware = async (req, res, next) => {
         }
 
         // 5. Check Redis revocation list
+        if (!redisClient.isOpen) {
+            await redisClient.connect();
+        }
         const revoked = await redisClient.exists(
             `revoked:jti:${jti}`
         );

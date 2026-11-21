@@ -11,7 +11,7 @@ async function enforceRiskPolicy(event, riskScore) {
         console.log(
             `[Enforcement] Risk ${riskScore} is below threshold ${RISK_THRESHOLD}. No action.`
         );
-        return;
+        return { enforced: false, revoked: false };
     }
 
     const jti = event.subject?.jti;
@@ -20,7 +20,7 @@ async function enforceRiskPolicy(event, riskScore) {
         console.log(
             '[Enforcement] High-risk event detected, but no JTI was found.'
         );
-        return;
+        return { enforced: false, revoked: false };
     }
 
     console.log(
@@ -40,7 +40,7 @@ async function enforceRiskPolicy(event, riskScore) {
             console.log(
                 `[Enforcement] Session ${jti} not found in PostgreSQL.`
             );
-            return;
+            return { enforced: true, revoked: false };
         }
 
         // 2. Calculate remaining TTL
@@ -51,17 +51,16 @@ async function enforceRiskPolicy(event, riskScore) {
         );
 
         // 3. Add JTI to Redis revocation list
+        if (!redisClient.isOpen) {
+            console.log('[Enforcement] Redis client is closed. Connecting...');
+            await redisClient.connect();
+        }
 
-if (!redisClient.isOpen) {
-    console.log('[Enforcement] Redis client is closed. Connecting...');
-    await redisClient.connect();
-}
-
-await redisClient.setEx(
-    `revoked:jti:${jti}`,
-    remainingTTL,
-    'revoked'
-);
+        await redisClient.setEx(
+            `revoked:jti:${jti}`,
+            remainingTTL,
+            'revoked'
+        );
 
         // 4. Mark session inactive in PostgreSQL
         await pool.query(
@@ -74,15 +73,18 @@ await redisClient.setEx(
         console.log(
             `[Enforcement] Session ${jti} revoked successfully.`
         );
+        return { enforced: true, revoked: true };
 
     } catch (error) {
         console.error(
             '[Enforcement] Enforcement failed:',
             error.message
         );
+        return { enforced: true, revoked: false, error: error.message };
     }
 }
 
 module.exports = {
-    enforceRiskPolicy
+    enforceRiskPolicy,
+    RISK_THRESHOLD
 };
