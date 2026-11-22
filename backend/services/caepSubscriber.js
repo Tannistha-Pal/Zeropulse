@@ -12,6 +12,41 @@ const REDIS_CHANNEL = 'caep:security_events';
 let subscriberPromise = null;
 const processedEventIds = new Set();
 
+function getSafeEventLogFields(event, riskScore, enforcementResult) {
+    const type = typeof event.type === 'string' &&
+        /^[A-Z][A-Z0-9_]{0,63}$/.test(event.type)
+        ? event.type
+        : 'UNKNOWN';
+    const severity = riskScore >= 70
+        ? 'high'
+        : riskScore >= 40
+            ? 'medium'
+            : 'low';
+    const processingStatus = enforcementResult.revoked
+        ? 'revoked'
+        : enforcementResult.error
+            ? 'enforcement_failed'
+            : riskScore >= 70
+                ? 'not_revoked'
+                : 'allowed';
+    const timestamp = event.timestamp === null || event.timestamp === undefined
+        ? Number.NaN
+        : Number(event.timestamp);
+    const date = Number.isFinite(timestamp)
+        ? new Date(timestamp * 1000)
+        : null;
+
+    return {
+        type,
+        severity,
+        riskScore: Number.isFinite(riskScore) ? riskScore : null,
+        processingStatus,
+        timestamp: date && Number.isFinite(date.getTime())
+            ? date.toISOString()
+            : 'unknown'
+    };
+}
+
 async function startCaepSubscriber() {
     if (subscriberPromise) {
         return subscriberPromise;
@@ -22,8 +57,8 @@ async function startCaepSubscriber() {
             // Redis subscriber must use a duplicated connection
             const subscriber = redisClient.duplicate();
 
-            subscriber.on('error', (err) => {
-                console.error('[CAEP Subscriber] Redis error:', err.message);
+            subscriber.on('error', () => {
+                console.error('[CAEP Subscriber] Redis connection error.');
             });
 
             await subscriber.connect();
@@ -33,11 +68,6 @@ async function startCaepSubscriber() {
             await subscriber.subscribe(
                 REDIS_CHANNEL,
                 async (message) => {
-                    console.log('\n====================================');
-                    console.log('[CAEP Subscriber] Event received');
-                    console.log('Channel:', REDIS_CHANNEL);
-                    console.log('====================================');
-
                     try {
                         const event = parseCaepEvent(message);
                         if (event.eventId && processedEventIds.has(event.eventId)) {
@@ -50,34 +80,17 @@ async function startCaepSubscriber() {
                             }
                         }
 
-                        console.log(
-                            '[CAEP Subscriber] Normalized CAEP event:',
-                            event
-                        );
-
-                        console.log(
-                            '[CAEP Subscriber] Event type:',
-                            event.type
-                        );
-
-                        console.log(
-                            '[CAEP Subscriber] Event details:',
-                            event.details
-                        );
-
                         const riskScore = calculateRiskScore(event);
-                        console.log(
-                            '[CAEP Risk Engine] Risk Score:',
-                            riskScore
-                        );
                         const enforcementResult = await enforceRiskPolicy(event, riskScore);
                         emitThreatEvent(event, riskScore, enforcementResult);
+                        console.log(
+                            '[CAEP Subscriber] Event processed:',
+                            getSafeEventLogFields(event, riskScore, enforcementResult)
+                        );
 
                     } catch (error) {
-
                         console.error(
-                            '[CAEP Subscriber] Invalid JSON event:',
-                            error.message
+                            '[CAEP Subscriber] Event processing failed.'
                         );
                     }
                 }
@@ -97,8 +110,8 @@ async function startCaepSubscriber() {
 }
 
 if (require.main === module) {
-    startCaepSubscriber().catch((error) => {
-        console.error('[CAEP Subscriber] Failed to start:', error.message);
+    startCaepSubscriber().catch(() => {
+    console.error('[CAEP Subscriber] Failed to start.');
     });
 }
 

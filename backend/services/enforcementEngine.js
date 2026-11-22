@@ -2,7 +2,7 @@
 
 const pool = require('../config/db');
 const redisClient = require('../config/redis');
-const { emitSessionRevoked } = require('./socketService');
+const { emitSessionRevoked, getSafeSessionRef } = require('./socketService');
 
 const RISK_THRESHOLD = 70;
 
@@ -25,7 +25,7 @@ async function enforceRiskPolicy(event, riskScore) {
     }
 
     console.log(
-        `[Enforcement] HIGH RISK detected: ${riskScore}. Revoking session ${jti}`
+        `[Enforcement] HIGH RISK detected: ${riskScore}. Revoking session ${getSafeSessionRef(jti)}`
     );
 
     try {
@@ -39,7 +39,7 @@ async function enforceRiskPolicy(event, riskScore) {
 
         if (result.rows.length === 0) {
             console.log(
-                `[Enforcement] Session ${jti} not found in PostgreSQL.`
+                `[Enforcement] Session ${getSafeSessionRef(jti)} not found in PostgreSQL.`
             );
             return { enforced: true, revoked: false };
         }
@@ -72,7 +72,7 @@ async function enforceRiskPolicy(event, riskScore) {
         );
 
         console.log(
-            `[Enforcement] Session ${jti} revoked successfully.`
+            `[Enforcement] Session ${getSafeSessionRef(jti)} revoked successfully.`
         );
         emitSessionRevoked(
             jti,
@@ -80,12 +80,11 @@ async function enforceRiskPolicy(event, riskScore) {
         );
         return { enforced: true, revoked: true };
 
-    } catch (error) {
+    } catch (_error) {
         console.error(
-            '[Enforcement] Enforcement failed:',
-            error.message
+            '[Enforcement] Enforcement failed.'
         );
-        return { enforced: true, revoked: false, error: error.message };
+        return { enforced: true, revoked: false, error: 'enforcement_failed' };
     }
 }
 

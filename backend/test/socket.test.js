@@ -113,24 +113,35 @@ test('Redis subscriber broadcasts a processed CAEP threat event without raw deta
         }
     };
     const originalDuplicate = redisClient.duplicate;
+    const originalLog = console.log;
+    const logOutput = [];
     redisClient.duplicate = () => subscriber;
     const socket = await connectSocket(createToken('threat-session'));
     try {
         const received = once(socket, 'threat_event');
         await startCaepSubscriber();
-        await subscriber.handler(JSON.stringify({
-            specversion: '1.0',
-            event_type: 'https://schemas.openid.net/secevent/caep/event-type/VPN_DETECTED',
-            jti: 'event-vpn-test',
-            event_timestamp: Math.floor(Date.now() / 1000),
-            subject: { format: 'complex', jti: 'threat-session' },
-            event_data: {
-                type: 'VPN_DETECTED',
-                source: 'test',
-                simulated: true,
-                privateDetail: 'must-not-be-broadcast'
-            }
-        }));
+        console.log = (...args) => {
+            logOutput.push(args.map((value) =>
+                typeof value === 'string' ? value : JSON.stringify(value)
+            ).join(' '));
+        };
+        try {
+            await subscriber.handler(JSON.stringify({
+                specversion: '1.0',
+                event_type: 'https://schemas.openid.net/secevent/caep/event-type/VPN_DETECTED',
+                jti: 'event-vpn-test',
+                event_timestamp: Math.floor(Date.now() / 1000),
+                subject: { format: 'complex', jti: 'threat-session' },
+                event_data: {
+                    type: 'VPN_DETECTED',
+                    source: 'test',
+                    simulated: true,
+                    privateDetail: 'must-not-be-broadcast'
+                }
+            }));
+        } finally {
+            console.log = originalLog;
+        }
 
         const [payload] = await received;
         assert.equal(payload.eventId, 'event-vpn-test');
@@ -139,7 +150,9 @@ test('Redis subscriber broadcasts a processed CAEP threat event without raw deta
         assert.equal(payload.riskScore, 55);
         assert.equal(payload.processingStatus, 'allowed');
         assert.equal(Object.hasOwn(payload, 'privateDetail'), false);
+        assert.equal(logOutput.join(' ').includes('must-not-be-broadcast'), false);
     } finally {
+        console.log = originalLog;
         socket.disconnect();
         redisClient.duplicate = originalDuplicate;
     }

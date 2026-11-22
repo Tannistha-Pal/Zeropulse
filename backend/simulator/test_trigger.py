@@ -4,6 +4,8 @@ import json
 import sys
 import types
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -52,6 +54,20 @@ class TriggerTests(unittest.TestCase):
             ]),
             0,
         )
+
+    def test_dry_run_does_not_print_session_or_ip_identifiers(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            trigger.main([
+                "--event", "TOKEN_HIJACKED",
+                "--jti", "private-session-marker",
+                "--ip", "198.51.100.22",
+                "--dry-run",
+            ])
+
+        self.assertIn("TOKEN_HIJACKED", output.getvalue())
+        self.assertNotIn("private-session-marker", output.getvalue())
+        self.assertNotIn("198.51.100.22", output.getvalue())
 
     def test_all_supported_event_types_build(self):
         for event_name in trigger.SIMULATED_EVENTS:

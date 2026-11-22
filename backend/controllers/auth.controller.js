@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 
 const pool = require("../config/db");
 const redisClient = require("../config/redis");
+const { emitSessionRevoked, getSafeSessionRef } = require("../services/socketService");
 
 const login = async (req, res) => {
     try {
@@ -109,8 +110,8 @@ const login = async (req, res) => {
             }
         });
 
-    } catch (error) {
-        console.error("Login error:", error);
+    } catch (_error) {
+        console.error("Login failed due to an internal error.");
 
         res.status(500).json({
             message: "Internal server error"
@@ -120,18 +121,63 @@ const login = async (req, res) => {
 
 const revokeSession = async (req, res) => {
     try {
-        // Get jti from the verified JWT
-        const jti = req.user.jti;
+        let jti = req.user.jti;
 
-        if (!jti) {
+        if (req.body?.sessionRef !== undefined) {
+            if (typeof req.body.sessionRef !== "string" || !req.body.sessionRef) {
+                return res.status(400).json({
+                    message: "A valid session reference is required"
+                });
+            }
+
+            const ownedSessions = await pool.query(
+                `SELECT jwt_jti
+                 FROM sessions
+                 WHERE user_id = $1`,
+                [req.user.userId]
+            );
+            const selectedSession = ownedSessions.rows.find(
+                (session) => getSafeSessionRef(session.jwt_jti) === req.body.sessionRef
+            );
+
+            if (!selectedSession) {
+                return res.status(404).json({
+                    message: "Session not found"
+                });
+            }
+            jti = selectedSession.jwt_jti;
+        }
+
+        if (typeof jti !== "string" || !jti) {
             return res.status(400).json({
-                message: "Session ID (jti) not found in token"
+                message: "A valid session reference is required"
+            });
+        }
+
+        const sessionResult = await pool.query(
+            `SELECT expires_at, is_active
+             FROM sessions
+             WHERE jwt_jti = $1
+             AND user_id = $2`,
+            [jti, req.user.userId]
+        );
+
+        if (sessionResult.rows.length === 0) {
+            return res.status(404).json({
+                message: "Session not found"
+            });
+        }
+
+        if (!sessionResult.rows[0].is_active) {
+            return res.status(409).json({
+                message: "Session has already been revoked"
             });
         }
 
         // Calculate remaining JWT lifetime in seconds
-        const currentTime = Math.floor(Date.now() / 1000);
-        const remainingTTL = req.user.exp - currentTime;
+        const remainingTTL = Math.floor(
+            (new Date(sessionResult.rows[0].expires_at).getTime() - Date.now()) / 1000
+        );
 
         if (remainingTTL <= 0) {
             return res.status(401).json({
@@ -155,13 +201,15 @@ const revokeSession = async (req, res) => {
             [jti, req.user.userId]
         );
 
+        emitSessionRevoked(jti, "Session revoked by the account owner.");
+
         return res.status(200).json({
             message: "Session revoked successfully",
-            jti: jti
+            jti
         });
 
-    } catch (error) {
-        console.error("Session revocation error:", error);
+    } catch (_error) {
+        console.error("Session revocation failed due to an internal error.");
 
         return res.status(500).json({
             message: "Failed to revoke session"

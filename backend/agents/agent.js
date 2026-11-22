@@ -212,8 +212,8 @@ async function publishSecurityEvent(event) {
   try {
     await redisClient.publish(REDIS_CHANNEL, payload);
     console.log(`[ZeroPulse] Published event -> ${REDIS_CHANNEL}:`, event.type);
-  } catch (err) {
-    console.error('[ZeroPulse] Failed to publish event to Redis:', err.message);
+  } catch (_err) {
+    console.error('[ZeroPulse] Failed to publish event to Redis.');
   }
 }
 
@@ -224,11 +224,8 @@ async function publishSecurityEvent(event) {
 async function pollOnce() {
   try {
     const firewall = await getFirewallStatus();
-    console.log('[ZeroPulse] Firewall status:', firewall);
 
     const { ipAddress, gateway } = await getNetworkInfo();
-    console.log(`[ZeroPulse] IP Address: ${ipAddress}`);
-    console.log(`[ZeroPulse] Gateway: ${gateway}`);
 
     const processCount = await getProcessCount();
     console.log(`[ZeroPulse] Process count: ${processCount}`);
@@ -241,7 +238,7 @@ async function pollOnce() {
     ];
 
     if (changes.length > 0) {
-      console.log(`[ZeroPulse] Detected ${changes.length} security-relevant change(s):`, changes);
+      console.log(`[ZeroPulse] Detected ${changes.length} security-relevant change(s).`);
       for (const change of changes) {
         await publishSecurityEvent(change);
       }
@@ -254,8 +251,8 @@ async function pollOnce() {
       gateway,
       processCount,
     };
-  } catch (err) {
-    console.error('[ZeroPulse] Error during poll cycle:', err.message);
+  } catch (_err) {
+    console.error('[ZeroPulse] Poll cycle failed.');
   }
 }
 
@@ -283,8 +280,8 @@ try {
   await redisClient.ping();
 
   console.log('[ZeroPulse] Redis connection established.');
-} catch (err) {
-  console.error('[ZeroPulse] Redis connection failed:', err.message);
+} catch (_err) {
+  console.error('[ZeroPulse] Redis connection failed.');
   process.exit(1);
 }
 

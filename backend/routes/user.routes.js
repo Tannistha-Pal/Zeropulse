@@ -2,7 +2,9 @@ const express = require("express");
 
 const {
     getProfile,
-    getDashboardSummary
+    getDashboardSummary,
+    getSessions,
+    getRecentThreatEvents
 } = require("../controllers/user.controller");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -16,5 +18,9 @@ router.get(
     authMiddleware,
     getDashboardSummary
 );
+
+router.get("/sessions", authMiddleware, getSessions);
+
+router.get("/threat-events", authMiddleware, getRecentThreatEvents);
 
 module.exports = router;

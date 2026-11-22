@@ -6,8 +6,10 @@ const { Server } = require('socket.io');
 const redisClient = require('../config/redis');
 
 const SESSION_ROOM_PREFIX = 'session';
+const MAX_THREAT_EVENTS = 100;
 let ioInstance = null;
 let initializedHttpServer = null;
+const threatEvents = [];
 
 function getSessionRoom(jti) {
     return `${SESSION_ROOM_PREFIX}:${jti}`;
@@ -19,6 +21,19 @@ function getSafeSessionRef(jti) {
     }
 
     return crypto.createHash('sha256').update(String(jti)).digest('hex').slice(0, 16);
+}
+
+function getThreatEvents(limit = 50) {
+    const safeLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 50, 1), MAX_THREAT_EVENTS);
+    return threatEvents.slice(0, safeLimit);
+}
+
+function getThreatEventKey(event) {
+    return event.eventId || [
+        event.type,
+        event.timestamp,
+        event.sessionRef
+    ].join(':');
 }
 
 function initializeSocketServer(httpServer, corsOrigin) {
@@ -98,7 +113,7 @@ function emitThreatEvent(event, riskScore, enforcementResult = {}) {
                 ? 'medium'
                 : 'low';
 
-        ioInstance.emit('threat_event', {
+        const threatEvent = {
             eventId: event.eventId || null,
             type: event.type,
             severity,
@@ -114,10 +129,18 @@ function emitThreatEvent(event, riskScore, enforcementResult = {}) {
                     : riskScore >= 70
                         ? 'not_revoked'
                         : 'allowed'
-        });
+        };
+        const eventKey = getThreatEventKey(threatEvent);
+        if (!threatEvents.some((item) => getThreatEventKey(item) === eventKey)) {
+            threatEvents.unshift(threatEvent);
+            if (threatEvents.length > MAX_THREAT_EVENTS) {
+                threatEvents.length = MAX_THREAT_EVENTS;
+            }
+        }
+        ioInstance.emit('threat_event', threatEvent);
         return true;
-    } catch (error) {
-        console.error('[Socket.IO] Failed to broadcast threat event:', error.message);
+    } catch (_error) {
+        console.error('[Socket.IO] Failed to broadcast threat event.');
         return false;
     }
 }
@@ -135,8 +158,8 @@ function emitSessionRevoked(jti, reason) {
             timestamp: new Date().toISOString()
         });
         return true;
-    } catch (error) {
-        console.error('[Socket.IO] Failed to notify revoked session:', error.message);
+    } catch (_error) {
+        console.error('[Socket.IO] Failed to notify revoked session.');
         return false;
     }
 }
@@ -145,5 +168,7 @@ module.exports = {
     emitSessionRevoked,
     emitThreatEvent,
     getSessionRoom,
+    getSafeSessionRef,
+    getThreatEvents,
     initializeSocketServer
 };

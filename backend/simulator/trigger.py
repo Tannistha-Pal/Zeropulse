@@ -136,18 +136,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     event = build_event(args.event, args.jti, args.ip, args.user_id, args.platform)
 
     if args.dry_run:
-        print(json.dumps(event, indent=2, sort_keys=True))
+        print(json.dumps({
+            "channel": REDIS_CHANNEL,
+            "event": event["event_data"]["type"],
+            "dry_run": True,
+        }, indent=2, sort_keys=True))
         return 0
 
     try:
         subscribers = publish_event(event, args.redis_host, args.redis_port)
-    except Exception as error:
-        print("Failed to publish simulated CAEP event: {}".format(error), file=sys.stderr)
+    except Exception:
+        print("Failed to publish simulated CAEP event.", file=sys.stderr)
         return 1
 
     print(
-        "Published {} for session {} to {} ({} subscriber(s) received it).".format(
-            args.event, args.jti, REDIS_CHANNEL, subscribers
+        "Published {} to {} ({} subscriber(s) received it).".format(
+            args.event, REDIS_CHANNEL, subscribers
         )
     )
     return 0

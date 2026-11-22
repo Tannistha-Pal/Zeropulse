@@ -14,8 +14,8 @@ redisClient.on('ready', () => {
     console.log('Redis ready');
 });
 
-redisClient.on('error', (err) => {
-    console.error('Redis error:', err.message);
+redisClient.on('error', () => {
+    console.error('Redis connection error.');
 });
 
 redisClient.on('end', () => {

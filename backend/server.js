@@ -63,8 +63,8 @@ app.get("/api/test-db", async (req, res) => {
             users: result.rows
         });
 
-    } catch (error) {
-        console.error("Database error:", error);
+    } catch (_error) {
+        console.error("Database query failed.");
 
         res.status(500).json({
             message: "Database connection failed"
@@ -112,8 +112,8 @@ async function startServer() {
             );
         });
 
-    } catch (error) {
-        console.error("Failed to start server:", error);
+    } catch (_error) {
+        console.error("Failed to start server because a required dependency is unavailable.");
         process.exit(1);
     }
 }
