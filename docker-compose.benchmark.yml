@@ -1,0 +1,41 @@
+services:
+  benchmark:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: benchmark
+    init: true
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-zeropulse_db}
+      DB_USER: ${DB_USER:-zeropulse_user}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the root .env file}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env file}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+      BENCHMARK_EXECUTION_MODE: docker
+      BENCHMARK_API_BASE_URL: ${BENCHMARK_API_BASE_URL:-http://frontend}
+      BENCHMARK_SOCKET_URL: ${BENCHMARK_SOCKET_URL:-http://backend:5000}
+      BENCHMARK_USER_ID: ${BENCHMARK_USER_ID:?Set BENCHMARK_USER_ID in the root .env file}
+      BENCHMARK_USER_EMAIL: ${BENCHMARK_USER_EMAIL:-zeropulse-benchmark@example.invalid}
+      BENCHMARK_JWT: ${BENCHMARK_JWT:-}
+      BENCHMARK_REQUESTS: ${BENCHMARK_REQUESTS:-1000}
+      BENCHMARK_CONCURRENCY: ${BENCHMARK_CONCURRENCY:-100}
+      BENCHMARK_DURATION_SECONDS: ${BENCHMARK_DURATION_SECONDS:-}
+      BENCHMARK_REVOCATION_TESTS: ${BENCHMARK_REVOCATION_TESTS:-20}
+      BENCHMARK_TIMEOUT_MS: ${BENCHMARK_TIMEOUT_MS:-10000}
+      BENCHMARK_SESSION_TTL_SECONDS: ${BENCHMARK_SESSION_TTL_SECONDS:-1800}
+    volumes:
+      - ./backend/benchmark/results:/app/benchmark/results
+      - ./backend/benchmark/reports:/app/benchmark/reports
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      frontend:
+        condition: service_started

@@ -7,6 +7,8 @@ const { emitSessionRevoked, getSafeSessionRef } = require('./socketService');
 const RISK_THRESHOLD = 70;
 
 async function enforceRiskPolicy(event, riskScore) {
+    const benchmarkTimings = event.benchmark ? {} : null;
+
     // Only enforce when risk reaches the threshold
     if (riskScore < RISK_THRESHOLD) {
         console.log(
@@ -62,6 +64,10 @@ async function enforceRiskPolicy(event, riskScore) {
             remainingTTL,
             'revoked'
         );
+        if (benchmarkTimings) {
+            benchmarkTimings.redisRevocationCompletedAtNs =
+                process.hrtime.bigint().toString();
+        }
 
         // 4. Mark session inactive in PostgreSQL
         await pool.query(
@@ -70,21 +76,40 @@ async function enforceRiskPolicy(event, riskScore) {
              WHERE jwt_jti = $1`,
             [jti]
         );
+        if (benchmarkTimings) {
+            benchmarkTimings.postgresDeactivationCompletedAtNs =
+                process.hrtime.bigint().toString();
+        }
 
         console.log(
             `[Enforcement] Session ${getSafeSessionRef(jti)} revoked successfully.`
         );
-        emitSessionRevoked(
+        const socketNotificationEmitted = emitSessionRevoked(
             jti,
             `High-risk CAEP event (${event.details?.type || 'unknown'}, risk ${riskScore}).`
         );
+        if (benchmarkTimings) {
+            benchmarkTimings.socketEmissionCompletedAtNs =
+                process.hrtime.bigint().toString();
+            return {
+                enforced: true,
+                revoked: true,
+                benchmarkTimings,
+                socketNotificationEmitted
+            };
+        }
         return { enforced: true, revoked: true };
 
     } catch (_error) {
         console.error(
             '[Enforcement] Enforcement failed.'
         );
-        return { enforced: true, revoked: false, error: 'enforcement_failed' };
+        return {
+            enforced: true,
+            revoked: false,
+            error: 'enforcement_failed',
+            ...(benchmarkTimings ? { benchmarkTimings } : {})
+        };
     }
 }
 

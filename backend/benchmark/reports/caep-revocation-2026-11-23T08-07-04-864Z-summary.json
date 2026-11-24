@@ -1,0 +1,504 @@
+{
+  "schemaVersion": 1,
+  "benchmark": "caep-revocation",
+  "generatedAt": "2026-11-23T08:07:04.864Z",
+  "executionMode": "docker",
+  "runtime": {
+    "nodeVersion": "v22.23.5",
+    "platform": "linux",
+    "architecture": "x64",
+    "executionMode": "docker"
+  },
+  "timing": {
+    "clock": "process.hrtime.bigint",
+    "stages": {
+      "eventProcessingMs": "T2 - T1",
+      "riskEvaluationMs": "T3 - T2",
+      "redisEnforcementMs": "T4 - T3",
+      "postgresDeactivationMs": "T5 - T4",
+      "socketEmissionMs": "T6 - T5",
+      "endToEndMs": "T6 - T1",
+      "socketClientReceiptMs": "T7 - T1"
+    },
+    "crossProcessClock": "Run benchmark runner and backend on the same host clock domain."
+  },
+  "configuration": {
+    "iterations": 20,
+    "timeoutMs": 10000,
+    "sessionTtlSeconds": 1800,
+    "eventType": "TOKEN_HIJACKED"
+  },
+  "summary": {
+    "attempted": 20,
+    "succeeded": 20,
+    "failed": 0,
+    "latenciesMs": {
+      "eventProcessingMs": {
+        "count": 20,
+        "min": 0.484783,
+        "average": 0.7877077499999999,
+        "median": 0.7743154999999999,
+        "p95": 1.230011,
+        "p99": 1.247531,
+        "max": 1.247531
+      },
+      "riskEvaluationMs": {
+        "count": 20,
+        "min": 0.046678,
+        "average": 0.09410389999999999,
+        "median": 0.0634265,
+        "p95": 0.225846,
+        "p99": 0.308694,
+        "max": 0.308694
+      },
+      "redisEnforcementMs": {
+        "count": 20,
+        "min": 1.474652,
+        "average": 3.3786926999999998,
+        "median": 2.1984459999999997,
+        "p95": 3.488425,
+        "p99": 24.752313,
+        "max": 24.752313
+      },
+      "postgresDeactivationMs": {
+        "count": 20,
+        "min": 1.965325,
+        "average": 3.1962302499999997,
+        "median": 3.160465,
+        "p95": 3.905359,
+        "p99": 5.7093,
+        "max": 5.7093
+      },
+      "socketEmissionMs": {
+        "count": 20,
+        "min": 0.356464,
+        "average": 0.6682573,
+        "median": 0.548496,
+        "p95": 1.008241,
+        "p99": 2.447113,
+        "max": 2.447113
+      },
+      "endToEndMs": {
+        "count": 20,
+        "min": 4.421824,
+        "average": 8.1249919,
+        "median": 6.8695315,
+        "p95": 9.156117,
+        "p99": 34.447431,
+        "max": 34.447431
+      },
+      "socketClientReceiptMs": {
+        "count": 20,
+        "min": 4.690349,
+        "average": 8.6148552,
+        "median": 7.4251745,
+        "p95": 10.036268,
+        "p99": 35.361823,
+        "max": 35.361823
+      }
+    }
+  },
+  "failuresByCode": {},
+  "records": [
+    {
+      "sequence": 1,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 1.230011,
+        "riskEvaluationMs": 0.308694,
+        "redisEnforcementMs": 24.752313,
+        "postgresDeactivationMs": 5.7093,
+        "socketEmissionMs": 2.447113,
+        "endToEndMs": 34.447431,
+        "socketClientReceiptMs": 35.361823
+      }
+    },
+    {
+      "sequence": 2,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 1.018962,
+        "riskEvaluationMs": 0.158403,
+        "redisEnforcementMs": 3.488425,
+        "postgresDeactivationMs": 3.482086,
+        "socketEmissionMs": 1.008241,
+        "endToEndMs": 9.156117,
+        "socketClientReceiptMs": 10.036268
+      }
+    },
+    {
+      "sequence": 3,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 1.247531,
+        "riskEvaluationMs": 0.105677,
+        "redisEnforcementMs": 3.286296,
+        "postgresDeactivationMs": 3.905359,
+        "socketEmissionMs": 0.472577,
+        "endToEndMs": 9.01744,
+        "socketClientReceiptMs": 9.574538
+      }
+    },
+    {
+      "sequence": 4,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.484783,
+        "riskEvaluationMs": 0.046678,
+        "redisEnforcementMs": 1.618239,
+        "postgresDeactivationMs": 2.936711,
+        "socketEmissionMs": 0.415792,
+        "endToEndMs": 5.502203,
+        "socketClientReceiptMs": 5.867483
+      }
+    },
+    {
+      "sequence": 5,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.553505,
+        "riskEvaluationMs": 0.071019,
+        "redisEnforcementMs": 1.824968,
+        "postgresDeactivationMs": 2.779666,
+        "socketEmissionMs": 0.455659,
+        "endToEndMs": 5.684817,
+        "socketClientReceiptMs": 5.95652
+      }
+    },
+    {
+      "sequence": 6,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.553221,
+        "riskEvaluationMs": 0.056665,
+        "redisEnforcementMs": 1.490149,
+        "postgresDeactivationMs": 1.965325,
+        "socketEmissionMs": 0.356464,
+        "endToEndMs": 4.421824,
+        "socketClientReceiptMs": 4.690349
+      }
+    },
+    {
+      "sequence": 7,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.579331,
+        "riskEvaluationMs": 0.056588,
+        "redisEnforcementMs": 1.474652,
+        "postgresDeactivationMs": 2.316751,
+        "socketEmissionMs": 0.421299,
+        "endToEndMs": 4.848621,
+        "socketClientReceiptMs": 5.14147
+      }
+    },
+    {
+      "sequence": 8,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.703075,
+        "riskEvaluationMs": 0.063843,
+        "redisEnforcementMs": 2.510968,
+        "postgresDeactivationMs": 3.300994,
+        "socketEmissionMs": 0.723529,
+        "endToEndMs": 7.302409,
+        "socketClientReceiptMs": 7.554096
+      }
+    },
+    {
+      "sequence": 9,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 1.049304,
+        "riskEvaluationMs": 0.225846,
+        "redisEnforcementMs": 2.156675,
+        "postgresDeactivationMs": 3.107772,
+        "socketEmissionMs": 0.821965,
+        "endToEndMs": 7.361562,
+        "socketClientReceiptMs": 7.775118
+      }
+    },
+    {
+      "sequence": 10,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.651174,
+        "riskEvaluationMs": 0.091457,
+        "redisEnforcementMs": 2.393875,
+        "postgresDeactivationMs": 3.621945,
+        "socketEmissionMs": 0.621777,
+        "endToEndMs": 7.380228,
+        "socketClientReceiptMs": 7.807087
+      }
+    },
+    {
+      "sequence": 11,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.560789,
+        "riskEvaluationMs": 0.068878,
+        "redisEnforcementMs": 2.850725,
+        "postgresDeactivationMs": 3.158378,
+        "socketEmissionMs": 0.77588,
+        "endToEndMs": 7.41465,
+        "socketClientReceiptMs": 7.792165
+      }
+    },
+    {
+      "sequence": 12,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.80879,
+        "riskEvaluationMs": 0.142004,
+        "redisEnforcementMs": 2.01837,
+        "postgresDeactivationMs": 3.379608,
+        "socketEmissionMs": 0.573358,
+        "endToEndMs": 6.92213,
+        "socketClientReceiptMs": 7.430535
+      }
+    },
+    {
+      "sequence": 13,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.79718,
+        "riskEvaluationMs": 0.062368,
+        "redisEnforcementMs": 2.240217,
+        "postgresDeactivationMs": 3.280026,
+        "socketEmissionMs": 0.519754,
+        "endToEndMs": 6.899545,
+        "socketClientReceiptMs": 7.341799
+      }
+    },
+    {
+      "sequence": 14,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.703713,
+        "riskEvaluationMs": 0.052576,
+        "redisEnforcementMs": 2.154149,
+        "postgresDeactivationMs": 3.173927,
+        "socketEmissionMs": 0.562987,
+        "endToEndMs": 6.647352,
+        "socketClientReceiptMs": 7.201602
+      }
+    },
+    {
+      "sequence": 15,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.768227,
+        "riskEvaluationMs": 0.058583,
+        "redisEnforcementMs": 2.285338,
+        "postgresDeactivationMs": 3.162552,
+        "socketEmissionMs": 0.537165,
+        "endToEndMs": 6.811865,
+        "socketClientReceiptMs": 7.419814
+      }
+    },
+    {
+      "sequence": 16,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.800547,
+        "riskEvaluationMs": 0.05895,
+        "redisEnforcementMs": 2.79429,
+        "postgresDeactivationMs": 3.05379,
+        "socketEmissionMs": 0.512488,
+        "endToEndMs": 7.220065,
+        "socketClientReceiptMs": 7.730376
+      }
+    },
+    {
+      "sequence": 17,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.85006,
+        "riskEvaluationMs": 0.083622,
+        "redisEnforcementMs": 2.302138,
+        "postgresDeactivationMs": 3.038259,
+        "socketEmissionMs": 0.565439,
+        "endToEndMs": 6.839518,
+        "socketClientReceiptMs": 7.44928
+      }
+    },
+    {
+      "sequence": 18,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.780404,
+        "riskEvaluationMs": 0.050422,
+        "redisEnforcementMs": 1.901696,
+        "postgresDeactivationMs": 2.530529,
+        "socketEmissionMs": 0.559827,
+        "endToEndMs": 5.822878,
+        "socketClientReceiptMs": 6.222271
+      }
+    },
+    {
+      "sequence": 19,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 1.006915,
+        "riskEvaluationMs": 0.06301,
+        "redisEnforcementMs": 1.990694,
+        "postgresDeactivationMs": 2.816134,
+        "socketEmissionMs": 0.513607,
+        "endToEndMs": 6.39036,
+        "socketClientReceiptMs": 7.01778
+      }
+    },
+    {
+      "sequence": 20,
+      "success": true,
+      "errorCode": null,
+      "httpStatus": null,
+      "riskScore": 95,
+      "redisRevocationConfirmed": true,
+      "postgresDeactivationConfirmed": true,
+      "socketNotificationEmitted": true,
+      "socketNotificationReceived": true,
+      "latenciesMs": {
+        "eventProcessingMs": 0.606633,
+        "riskEvaluationMs": 0.056795,
+        "redisEnforcementMs": 2.039677,
+        "postgresDeactivationMs": 3.205493,
+        "socketEmissionMs": 0.500225,
+        "endToEndMs": 6.408823,
+        "socketClientReceiptMs": 6.92673
+      }
+    }
+  ]
+}

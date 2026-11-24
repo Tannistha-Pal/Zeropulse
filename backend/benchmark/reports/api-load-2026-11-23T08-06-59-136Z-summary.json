@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "benchmark": "api-load",
+  "generatedAt": "2026-11-23T08:06:59.136Z",
+  "executionMode": "docker",
+  "runtime": {
+    "nodeVersion": "v22.23.5",
+    "platform": "linux",
+    "architecture": "x64",
+    "executionMode": "docker"
+  },
+  "timing": {
+    "clock": "process.hrtime.bigint",
+    "measuredEndpoint": "/api/user/profile",
+    "latencyPopulation": {
+      "allRequests": "Includes HTTP responses and network failures",
+      "responseLatency": "Requests with an HTTP response",
+      "successfulResponseLatency": "HTTP 200 responses"
+    }
+  },
+  "configuration": {
+    "requestCount": 1000,
+    "durationSeconds": null,
+    "concurrency": 100,
+    "endpointPath": "/api/user/profile"
+  },
+  "metrics": {
+    "totalRequests": 1000,
+    "successfulRequests": 1000,
+    "failedRequests": 0,
+    "elapsedSeconds": 1.952964688,
+    "requestsPerSecond": 512.0420282785983,
+    "successfulRequestsPerSecond": 512.0420282785983,
+    "errorRatePercent": 0,
+    "latencyMs": {
+      "count": 1000,
+      "min": 136.116222,
+      "average": 184.6828216149999,
+      "median": 172.5052135,
+      "p95": 279.676969,
+      "p99": 338.895697,
+      "max": 355.101399
+    },
+    "responseLatencyMs": {
+      "count": 1000,
+      "min": 136.116222,
+      "average": 184.6828216149999,
+      "median": 172.5052135,
+      "p95": 279.676969,
+      "p99": 338.895697,
+      "max": 355.101399
+    },
+    "successfulResponseLatencyMs": {
+      "count": 1000,
+      "min": 136.116222,
+      "average": 184.6828216149999,
+      "median": 172.5052135,
+      "p95": 279.676969,
+      "p99": 338.895697,
+      "max": 355.101399
+    },
+    "statusCodes": {
+      "200": 1000
+    },
+    "errorCategories": {},
+    "statusCode401Count": 0,
+    "statusCode429Count": 0,
+    "statusCode5xxCount": 0
+  },
+  "statusCodes": {
+    "200": 1000
+  },
+  "errorCategories": {}
+}

@@ -1,0 +1,50 @@
+flowchart LR
+    Simulator["Endpoint / threat simulator"]
+
+    subgraph Redis["Redis service"]
+        PubSub[("Redis Pub/Sub<br/>caep:security_events")]
+        ActiveSession[("Active session marker<br/>session:{jti}")]
+        RevocationMarker[("Revocation marker<br/>revoked:jti:{jti}")]
+    end
+
+    subgraph Backend["Backend container"]
+        Subscriber["CAEP subscriber<br/>parse and deduplicate events"]
+        Risk["Risk Engine<br/>calculate risk score"]
+        Enforcement["Enforcement Engine<br/>revoke when score >= 70"]
+        Express["Express API"]
+        Login["Login controller"]
+        JwtAuth["JWT authentication middleware"]
+        SessionCheck["Redis session verifier"]
+        Protected["Protected API routes"]
+        Socket["Socket.IO<br/>private session:{jti} room"]
+    end
+
+    PostgreSQL[("PostgreSQL<br/>users and sessions")]
+
+    subgraph Web["Frontend container and browser"]
+        Nginx["Nginx<br/>SPA, API, and Socket.IO proxy"]
+        React["React security dashboard"]
+        Logout["Clear local token<br/>redirect to login"]
+    end
+
+    Simulator --> PubSub --> Subscriber --> Risk --> Enforcement
+    Enforcement -->|write revocation marker| RevocationMarker
+    Enforcement -->|read expiry and deactivate session| PostgreSQL
+    Enforcement -->|emit session_revoked| Socket
+    Socket -->|notification via Nginx| Nginx --> React
+    React --> Logout
+
+    React -->|API requests| Nginx
+    Nginx -->|/api/*| Express
+    Express --> JwtAuth --> SessionCheck --> Protected
+    SessionCheck --> RevocationMarker
+    SessionCheck --> ActiveSession
+
+    React -->|/socket.io/*| Nginx
+    Nginx --> Socket
+    Socket --> SessionCheck
+
+    Express --> Login
+    Login -->|load user and create session row| PostgreSQL
+    Login -->|create active session marker| ActiveSession
+    Login -.->|return signed JWT containing jti| React

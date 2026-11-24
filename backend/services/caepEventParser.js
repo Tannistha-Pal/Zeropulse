@@ -1,5 +1,7 @@
 'use strict';
 
+const { isBenchmarkMetadata } = require('./benchmarkTelemetry');
+
 function parseCaepEvent(rawMessage) {
     let event;
 
@@ -33,6 +35,7 @@ function parseCaepEvent(rawMessage) {
     source: event.event_data?.source || 'unknown',
     platform: event.event_data?.platform || 'unknown',
     timestamp: event.event_timestamp || null,
+    benchmark: isBenchmarkMetadata(event.benchmark) ? event.benchmark : null,
 
     subject: event.subject || null,
 

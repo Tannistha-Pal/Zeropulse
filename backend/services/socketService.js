@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const jwt = require('jsonwebtoken');
 const { Server } = require('socket.io');
-const redisClient = require('../config/redis');
+const { getSessionState } = require('./sessionVerifier');
 
 const SESSION_ROOM_PREFIX = 'session';
 const MAX_THREAT_EVENTS = 100;
@@ -73,12 +73,9 @@ function initializeSocketServer(httpServer, corsOrigin) {
                 throw new Error('Invalid session token.');
             }
 
-            if (!redisClient.isOpen) {
-                await redisClient.connect();
-            }
-            const revoked = await redisClient.exists(`revoked:jti:${decoded.jti}`);
-            if (revoked) {
-                throw new Error('Session revoked.');
+            const sessionState = await getSessionState(decoded.jti, decoded.userId);
+            if (sessionState !== 'active') {
+                throw new Error('Session is not active.');
             }
 
             socket.data.userId = decoded.userId;

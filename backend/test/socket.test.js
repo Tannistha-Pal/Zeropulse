@@ -10,6 +10,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET ||
 
 const redisClient = require('../config/redis');
 const pool = require('../config/db');
+const originalGet = redisClient.get;
 const { startCaepSubscriber } = require('../services/caepSubscriber');
 const { enforceRiskPolicy } = require('../services/enforcementEngine');
 const { emitThreatEvent } = require('../services/socketService');
@@ -45,6 +46,10 @@ test.before(async () => {
         value: true
     });
     redisClient.exists = async () => 0;
+    redisClient.get = async (key) => JSON.stringify({
+        userId: `user-${key.slice('session:'.length)}`,
+        isActive: true
+    });
 
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     serverUrl = `http://127.0.0.1:${server.address().port}`;
@@ -52,6 +57,7 @@ test.before(async () => {
 
 test.after(async () => {
     redisClient.exists = originalExists;
+    redisClient.get = originalGet;
     if (originalIsOpen) {
         Object.defineProperty(redisClient, 'isOpen', originalIsOpen);
     } else {

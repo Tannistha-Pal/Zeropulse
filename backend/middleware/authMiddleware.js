@@ -1,68 +1,70 @@
 const jwt = require("jsonwebtoken");
-const redisClient = require("../config/redis");
+const { getSessionState } = require("../services/sessionVerifier");
 
 const authMiddleware = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({
+            error: "Unauthorized",
+            message: "No authentication token provided."
+        });
+    }
+
+    let decoded;
     try {
-        // 1. Get Authorization header
-        const authHeader = req.headers.authorization;
-
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({
-                error: "Unauthorized",
-                message: "No authentication token provided."
-            });
-        }
-
-        // 2. Extract JWT
-        const token = authHeader.split(" ")[1];
-
-        // 3. Verify JWT
-        const decoded = jwt.verify(
-            token,
+        decoded = jwt.verify(
+            authHeader.slice("Bearer ".length),
             process.env.JWT_SECRET
         );
-
-        // 4. Extract jti from JWT
-        const jti = decoded.jti;
-
-        if (!jti) {
-            return res.status(401).json({
-                error: "Unauthorized",
-                message: "Invalid session token."
-            });
-        }
-
-        // 5. Check Redis revocation list
-        if (!redisClient.isOpen) {
-            await redisClient.connect();
-        }
-        const revoked = await redisClient.exists(
-            `revoked:jti:${jti}`
-        );
-
-        // 6. If session has been revoked
-        if (revoked) {
-            return res.status(401).json({
-                error: "Session revoked",
-                message:
-                    "Your session was terminated due to a security policy update."
-            });
-        }
-
-        // 7. Attach decoded JWT information to request
-        req.user = decoded;
-
-        // 8. Allow request to continue
-        next();
-
-    } catch (_error) {
-        console.error("Authentication could not be completed.");
-
+    } catch {
         return res.status(401).json({
             error: "Unauthorized",
             message: "Invalid or expired token."
         });
     }
+
+    if (
+        !decoded ||
+        typeof decoded !== "object" ||
+        typeof decoded.jti !== "string" ||
+        !decoded.jti ||
+        decoded.userId === undefined ||
+        decoded.userId === null
+    ) {
+        return res.status(401).json({
+            error: "Unauthorized",
+            message: "Invalid session token."
+        });
+    }
+
+    let sessionState;
+    try {
+        sessionState = await getSessionState(decoded.jti, decoded.userId);
+    } catch {
+        console.error("[Authentication] Redis session verification failed.");
+        return res.status(503).json({
+            error: "Service Unavailable",
+            message: "Authentication is temporarily unavailable. Please try again."
+        });
+    }
+
+    if (sessionState === "revoked") {
+        return res.status(401).json({
+            error: "Session revoked",
+            message:
+                "Your session was terminated due to a security policy update."
+        });
+    }
+
+    if (sessionState !== "active") {
+        return res.status(401).json({
+            error: "Unauthorized",
+            message: "This session is no longer active."
+        });
+    }
+
+    req.user = decoded;
+    return next();
 };
 
 module.exports = authMiddleware;
